@@ -1,3 +1,12 @@
+%{ 
+% Eliminar %{ y su correspondiente %} si se va a usar por primera vez o se
+% desea reentrenar la CNN. Si está satisfecho con el entrenamiento del modelo
+% y las variables se encuentran en el Workspace, puede comentariar de nuevo
+% toda la sección de código hasta la linea "Evaluacion con una imagen
+% cualquiera" para que la compilacion sea más rápida.
+
+
+
 %Carpetas donde se encuentran las imagenes a utilizar en la CNN
 outputFolder = fullfile('Datos');
 rootFolder = fullfile(outputFolder,'Etiquetas');
@@ -35,6 +44,7 @@ imshow(readimage(imds,residuo_especial));
 subplot(2,3,5);
 imshow(readimage(imds,residuo_peligroso));
 %} 
+
 
 net = resnet50();
 % figure
@@ -82,9 +92,15 @@ confMat = bsxfun(@rdivide, confMat, sum(confMat,2));
 %Precicision del modelo
 mean(diag(confMat));
 
-%Evaluacion con una imagen cualquiera
 
-nuevaImagen = imread(fullfile('img1.jpg'));
+
+
+
+%}
+
+% --------  Evaluacion con una imagen cualquiera ----------
+
+nuevaImagen = imread(fullfile('img4.jpg'));
 
 imgProcesada =  augmentedImageDatastore(imageSize, ...
     nuevaImagen, 'ColorPreprocessing', 'gray2rgb');
@@ -92,10 +108,13 @@ imgProcesada =  augmentedImageDatastore(imageSize, ...
 caracteristicaImg = activations(net, ...
     imgProcesada,featureLayer, 'MiniBatchSize',32,'OutputAs','columns');
 
-etiqueta =  predict( classifier , caracteristicaImg, 'ObservationsIn', 'columns');
+[etiqueta,score] =  predict( classifier , caracteristicaImg, 'ObservationsIn', 'columns');
+maxProb = max(score)+1;
 
-textoResultado = sprintf('La imagen analizada corresponde a la etiqueta %s', etiqueta);
+textoResultado = sprintf('La imagen analizada corresponde a la etiqueta:  %s', etiqueta);
 
+%Ventana para muestra de resultados
+textoResultado = replace(textoResultado,"_"," ");
 image(nuevaImagen);
-title(char(textoResultado));
+title({(textoResultado);['Probabilidad: ', num2str(maxProb),' ']});
 
