@@ -1,35 +1,40 @@
+%Carpetas donde se encuentran las imagenes a utilizar en la CNN
 outputFolder = fullfile('Datos');
 rootFolder = fullfile(outputFolder,'Etiquetas');
 
-categories = {'Aprovechable','No_aprovechable','Organico_biodegradable','Residuo_especial','Residuo_peligroso'};
+%Se definen las categorias, clases o etiquetas en las cuales una imagen
+%será clasificada
+categories = {'Aprovechable','No_aprovechable','Organico_biodegradable', ...
+    'Residuo_especial','Residuo_peligroso'};
+
 imds = imageDatastore(fullfile(rootFolder,categories),'LabelSource','foldernames');
 
 tbl = countEachLabel(imds);
 minSetCount = min(tbl{:,2});
 
-%Se configuran cada una de las etiquetas con igual numero de imagens
+%Se configuran cada una de las etiquetas con igual numero de imagenes
 imds = splitEachLabel(imds,minSetCount,'randomize');
-countEachLabel(imds);
+%countEachLabel(imds);
 
-
+%{
 aprovechable = find(imds.Labels == 'Aprovechable',1);
 no_aprovechable = find(imds.Labels == 'No_aprovechable',1);
 organico_biodegradable = find(imds.Labels == 'Organico_biodegradable',1);
 residuo_especial = find(imds.Labels == 'Residuo_especial',1);
 residuo_peligroso = find(imds.Labels == 'Residuo_peligroso',1);
 
-% figure
-% subplot(2,3,1);
-% imshow(readimage(imds,aprovechable));
-% subplot(2,3,2);
-% imshow(readimage(imds,no_aprovechable));
-% subplot(2,3,3);
-% imshow(readimage(imds,organico_biodegradable));
-% subplot(2,3,4);
-% imshow(readimage(imds,residuo_especial));
-% subplot(2,3,5);
-% imshow(readimage(imds,residuo_peligroso));
-
+figure
+subplot(2,3,1);
+imshow(readimage(imds,aprovechable));
+subplot(2,3,2);
+imshow(readimage(imds,no_aprovechable));
+subplot(2,3,3);
+imshow(readimage(imds,organico_biodegradable));
+subplot(2,3,4);
+imshow(readimage(imds,residuo_especial));
+subplot(2,3,5);
+imshow(readimage(imds,residuo_peligroso));
+%} 
 
 net = resnet50();
 % figure
@@ -37,7 +42,7 @@ net = resnet50();
 % title('Arquitectura de modelo pre-entrenado ResNet')
 % set(gca, 'YLim',[150 170]);
 
-net.Layers(1);
+%net.Layers(1);
 
 [trainingSet,testSet] = splitEachLabel(imds,0.3,'randomize');
 imageSize = net.Layers(1).InputSize;
@@ -89,4 +94,8 @@ caracteristicaImg = activations(net, ...
 
 etiqueta =  predict( classifier , caracteristicaImg, 'ObservationsIn', 'columns');
 
-sprintf('La imagen analizada corresponde a la etiqueta %s', etiqueta)
+textoResultado = sprintf('La imagen analizada corresponde a la etiqueta %s', etiqueta);
+
+image(nuevaImagen);
+title(char(textoResultado));
+
