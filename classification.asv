@@ -1,10 +1,10 @@
-%{ 
 % Eliminar %{ y su correspondiente %} si se va a usar por primera vez o se
 % desea reentrenar la CNN. Si está satisfecho con el entrenamiento del modelo
 % y las variables se encuentran en el Workspace, puede comentariar de nuevo
 % toda la sección de código hasta la linea "Evaluacion con una imagen
 % cualquiera" para que la compilacion sea más rápida.
 
+%{
 
 
 %Carpetas donde se encuentran las imagenes a utilizar en la CNN
@@ -90,17 +90,17 @@ confMat = confusionmat(testLabels, predictLabels);
 confMat = bsxfun(@rdivide, confMat, sum(confMat,2));
 
 %Precicision del modelo
-mean(diag(confMat));
+precisionModelo = mean(diag(confMat));
 
 
 
+}%
 
 
-%}
 
 % --------  Evaluacion con una imagen cualquiera ----------
 
-nuevaImagen = imread(fullfile('img4.jpg'));
+nuevaImagen = imread(fullfile('img5.jpg'));
 
 imgProcesada =  augmentedImageDatastore(imageSize, ...
     nuevaImagen, 'ColorPreprocessing', 'gray2rgb');
@@ -111,9 +111,26 @@ caracteristicaImg = activations(net, ...
 [etiqueta,score] =  predict( classifier , caracteristicaImg, 'ObservationsIn', 'columns');
 maxProb = max(score)+1;
 
-textoResultado = sprintf('La imagen analizada corresponde a la etiqueta: %s', etiqueta);
+textoResultado = sprintf('La imagen analizada corresponde a la etiqueta:  %s', etiqueta);
 
+%Ventana para muestra de resultados
 textoResultado = replace(textoResultado,"_"," ");
+
+
+if strcmp(char(etiqueta(1)),'Aprovechable')
+    consejo = 'Estos residuos deben ser recogidos y llevados a una \n Estación  de Clasificación y Aprovechamiento –ECA';
+elseif strcmp(char(etiqueta(1)),'No_aprovechable')
+    consejo = 'Deberán ser entregados al prestador del servicio \n de NO APROVECHABLES e irán al relleno sanitario.';
+elseif strcmp(char(etiqueta(1)),'Organico_biodegradable')
+    consejo = 'Estos residuos son usados para Abonos orgánicos, \n compostaje y lombricultura, de acuerdo a la guia para el aprovechamiento\n de residuos organicos de la UAESP.';
+elseif strcmp(char(etiqueta(1)),'Residuo_especial')
+    consejo = 'Estos residuos deben ser tratados de acuerdo a la \n resolución 2309 del 24 de febrero del 86.';
+elseif strcmp(char(etiqueta(1)),'Residuo_peligroso')
+    consejo = 'Para la disposición final se tiene como opciones la \n celda de seguridad, relleno de seguridad y otros, de acuerdo a \n la normativa RESPEL.';
+else
+    consejo = 'No se encontró consejo para el tipo de residuo.';
+end
+
 image(nuevaImagen);
-title({[textoResultado,'{\color{green}', cellstr,}'];['Probabilidad: ', num2str(maxProb),' ']});
+title({(textoResultado);['Probabilidad: ', num2str(maxProb),' '];['Consejo: ', sprintf(consejo),' '];(' ')});
 
